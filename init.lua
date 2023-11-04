@@ -156,7 +156,7 @@ require('lazy').setup({
     name = "catppuccin",
     priority = 1000,
     config = function()
-      vim.cmd.colorscheme 'catppuccin-macchiato'
+      vim.cmd.colorscheme 'catppuccin-mocha'
     end
   },
 
@@ -167,7 +167,7 @@ require('lazy').setup({
     opts = {
       options = {
         icons_enabled = false,
-        theme = 'catppuccin-macchiato',
+        theme = 'catppuccin-mocha',
         component_separators = '|',
         section_separators = '',
       },
@@ -328,7 +328,8 @@ vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { de
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
-vim.keymap.set('n', '<leader>fb', require('telescope').extensions.file_browser.file_browser, { desc = '[F]ile [B]rowser' })
+vim.keymap.set('n', '<leader>fbh', require('telescope').extensions.file_browser.file_browser, { desc = '[F]ile [B]rowser [H]ome' })
+vim.keymap.set('n', '<leader>fbc', function () require('telescope').extensions.file_browser.file_browser {cwd=vim.fn.expand "%:p:h"} end, { desc = '[F]ile [B]rowser [C]urrent directory' })
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
