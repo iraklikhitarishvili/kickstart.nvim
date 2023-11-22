@@ -347,7 +347,7 @@ local function live_grep_git_root()
   local git_root = find_git_root()
   if git_root then
     require('telescope.builtin').live_grep({
-      search_dirs = {git_root},
+      search_dirs = { git_root },
     })
   end
 end
@@ -373,8 +373,11 @@ vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc
 vim.keymap.set('n', '<leader>sG', ':LiveGrepGitRoot<cr>', { desc = '[S]earch by [G]rep on Git Root' })
 vim.keymap.set('n', '<leader>sd', require('telescope.builtin').diagnostics, { desc = '[S]earch [D]iagnostics' })
 vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = '[S]earch [R]esume' })
-vim.keymap.set('n', '<leader>fbh', require('telescope').extensions.file_browser.file_browser, { desc = '[F]ile [B]rowser [H]ome' })
-vim.keymap.set('n', '<leader>fbc', function () require('telescope').extensions.file_browser.file_browser {cwd=vim.fn.expand "%:p:h"} end, { desc = '[F]ile [B]rowser [C]urrent directory' })
+vim.keymap.set('n', '<leader>fbh', require('telescope').extensions.file_browser.file_browser,
+  { desc = '[F]ile [B]rowser [H]ome' })
+vim.keymap.set('n', '<leader>fbc',
+  function() require('telescope').extensions.file_browser.file_browser { cwd = vim.fn.expand "%:p:h" } end,
+  { desc = '[F]ile [B]rowser [C]urrent directory' })
 -- [[ Configure Treesitter ]]
 -- See `:help nvim-treesitter`
 -- Defer Treesitter setup after first render to improve startup time of 'nvim {filename}'
@@ -442,6 +445,10 @@ vim.defer_fn(function()
         },
       },
     },
+    rainbow = {
+      enable = true,
+      max_file_lines = nil
+    }
   }
 end, 0)
 
