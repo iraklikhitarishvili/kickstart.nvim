@@ -527,18 +527,28 @@ require('mason-lspconfig').setup()
 --  define the property 'filetypes' to the map in question.
 local servers = {
   -- clangd = {},
-  -- gopls = {},
   -- pyright = {},
-  -- rust_analyzer = {},
-  -- tsserver = {},
+  rust_analyzer = {},
+  -- Front end
+  tsserver = {},
   html = { filetypes = { 'html', 'gohtml' } },
-
+  cssmodules_ls = {},
+  -- Lua
   lua_ls = {
     Lua = {
       workspace = { checkThirdParty = false },
       telemetry = { enable = false },
     },
   },
+  -- clangd = {},
+  -- Go lang
+  gopls = {},
+  staticcheck = {},
+  delve = {},
+  gofumpt = {},
+  goimports = {},
+  gomodifytags = {},
+  -- golangci-lint={},
 }
 
 -- Setup neovim lua configuration
