@@ -543,11 +543,11 @@ local servers = {
   -- clangd = {},
   -- Go lang
   gopls = {},
-  staticcheck = {},
-  delve = {},
-  gofumpt = {},
-  goimports = {},
-  gomodifytags = {},
+  -- staticcheck = {},
+  -- delve = {},
+  -- gofumpt = {},
+  -- goimports = {},
+  -- gomodifytags = {},
   -- golangci-lint={},
 }
 
