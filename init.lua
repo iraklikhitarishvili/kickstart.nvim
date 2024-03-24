@@ -518,6 +518,19 @@ require('lazy').setup({
               callback = vim.lsp.buf.clear_references,
             })
           end
+          -- Lesser used LSP functionality
+          map('<leader>wa', vim.lsp.buf.add_workspace_folder, '[W]orkspace [A]dd Folder')
+          map('<leader>wr', vim.lsp.buf.remove_workspace_folder, '[W]orkspace [R]emove Folder')
+          map('<leader>wl', function()
+            print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+          end, '[W]orkspace [L]ist Folders')
+          map('fb', function()
+            vim.lsp.buf.format()
+          end, '[F]ormat [B]uffer')
+          -- Create a command `:Format` local to the LSP buffer
+          -- vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
+          --   vim.lsp.buf.format()
+          -- end, { desc = 'Format current buffer with LSP' })
         end,
       })
 
@@ -549,7 +562,7 @@ require('lazy').setup({
         --
         -- But for many setups, the LSP (`tsserver`) will work just fine
         tsserver = {},
-        html = { filetypes = { 'html', 'gohtml' }},
+        html = { filetypes = { 'html', 'gohtml' } },
         cssmodules_ls = {},
         --
 
@@ -647,10 +660,10 @@ require('lazy').setup({
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
           {
-             'rafamadriz/friendly-snippets',
-             config = function()
-               require('luasnip.loaders.from_vscode').lazy_load()
-             end,
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
           },
         },
       },
@@ -807,8 +820,8 @@ require('lazy').setup({
       indent = { enable = true, disable = { 'ruby' } },
       rainbow = {
         enable = true,
-        max_file_lines = nil
-      }
+        max_file_lines = nil,
+      },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
