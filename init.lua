@@ -45,35 +45,7 @@ Kickstart Guide:
 
   TODO: The very first thing you should do is to run the command `:Tutor` in Neovim.
 
-    If you don't know what this means, type the following:
-      - <escape key>
-      - :
-      - Tutor
-      - <enter key>
-
-    (If you already know the Neovim basics, you can skip this step.)
-
-  Once you've completed that, you can continue working through **AND READING** the rest
-  of the kickstart init.lua.
-
-  Next, run AND READ `:help`.
-    This will open up a help window with some basic information
-    about reading, navigating and searching the builtin help documentation.
-
-    This should be the first place you go to look when you're stuck or confused
-    with something. It's one of my favorite Neovim features.
-
-    MOST IMPORTANTLY, we provide a keymap "<space>sh" to [s]earch the [h]elp documentation,
-    which is very useful when you're not exactly sure of what you're looking for.
-
-  I have left several `:help X` comments throughout the init.lua
-    These are hints about where to find more information about the relevant settings,
-    plugins or Neovim features used in Kickstart.
-
-   NOTE: Look for lines like this
-
-    Throughout the file. These are for you, the reader, to help you understand what is happening.
-    Feel free to delete them once you know what you're doing, but they should serve as a guide
+    If you don't know what this means, , but they should serve as a guide
     for when you are first encountering a few different constructs in your Neovim config.
 
 If you experience any errors while trying to install kickstart, run `:checkhealth` for more info.
@@ -376,6 +348,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader>td', '<cmd>TodoTelescope<CR>', { desc = '[ ] Find existing buffers' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -448,6 +421,7 @@ require('lazy').setup({
       --    That is to say, every time a new file is opened that is associated with
       --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
       --    function will be executed to configure the current buffer
+
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
@@ -527,10 +501,12 @@ require('lazy').setup({
           map('fb', function()
             vim.lsp.buf.format()
           end, '[F]ormat [B]uffer')
-          -- Create a command `:Format` local to the LSP buffer
-          -- vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
-          --   vim.lsp.buf.format()
-          -- end, { desc = 'Format current buffer with LSP' })
+          map('td', function()
+            vim.diagnostic.config(vim.g.my_globals.diagnostics)
+            local my_globals = vim.g.my_globals
+            my_globals.diagnostics.virtual_text = not my_globals.diagnostics.virtual_text
+            vim.g.my_globals = my_globals
+          end, '[T]oggle [D]iagnostics Text')
         end,
       })
 
@@ -554,7 +530,15 @@ require('lazy').setup({
         -- clangd = {},
         gopls = {},
         -- pyright = {},
-        rust_analyzer = {},
+        rust_analyzer = {
+          settings = {
+            ['rust-analyzer'] = {
+              check = {
+                command = 'clippy',
+              },
+            },
+          },
+        },
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -888,6 +872,128 @@ require('lazy').setup({
     },
   },
 })
-
+vim.o.termguicolors = true
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+
+-- globals for custom functions
+vim.g.my_globals = {
+  diagnostics = {
+    virtual_text = false,
+    signs = true,
+    underline = true,
+    update_in_insert = false,
+  },
+}
+-- folding
+vim.opt.foldmethod = 'expr'
+vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+vim.opt.foldtext = 'v:lua.vim.treesitter.foldtext()'
+vim.opt.foldenable = false
+vim.opt.foldtext = 'v:lua.my_fold_text()'
+function _G.my_fold_text()
+  local line = vim.fn.getline(vim.v.foldstart)
+  local sub = vim.fn.trim(line)
+  sub = vim.fn.substitute(sub, '/*|*/|{{{d=', '', 'g')
+  sub = string.format('  %d lines: %s', vim.v.foldend - vim.v.foldstart + 1, sub)
+  return vim.v.folddashes .. sub
+end
+------------Experiment with symbols--------------------
+local Split = require 'nui.split'
+local event = require('nui.utils.autocmd').event
+
+local split = Split {
+  relative = 'editor',
+  position = 'left',
+  size = '60%',
+}
+
+-- unmount component when cursor leaves buffer
+split:on(event.BufLeave, function()
+  -- split:unmount()
+end)
+local symbolKind = {
+  [1] = 'File',
+  [2] = 'Module',
+  [3] = 'Namespace',
+  [4] = 'Package',
+  [5] = 'Class',
+  [6] = 'Method',
+  [7] = 'Property',
+  [8] = 'Field',
+  [9] = 'Constructor',
+  [10] = 'Enum',
+  [11] = 'Interface',
+  [12] = 'Function',
+  [13] = 'Variable',
+  [14] = 'Constant',
+  [15] = 'String',
+  [16] = 'Number',
+  [17] = 'Boolean',
+  [18] = 'Array',
+  [19] = 'Object',
+  [20] = 'Key',
+  [21] = 'Null',
+  [22] = 'EnumMember',
+  [23] = 'Struct',
+  [24] = 'Event',
+  [25] = 'Operator',
+  [26] = 'TypeParameter',
+}
+local map = function(keys, func, desc)
+  vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+end
+local function lines(str)
+  local result = {}
+  for line in str:gmatch '[^\n]+' do
+    table.insert(result, line)
+  end
+  return result
+end
+map('ttt', function()
+  local params = vim.lsp.util.make_position_params()
+  vim.lsp.buf_request(0, 'textDocument/documentSymbol', params, function(err, result, _, _)
+    local NuiTree = require 'nui.tree'
+    split:mount()
+    local tree = NuiTree {
+      bufnr = split.bufnr,
+      get_node_id = function(node)
+        if node.id then
+          return '-' .. node.id
+        end
+
+        if node.text then
+          return string.format('%s-%s-%s', node:get_parent_id() or '', node:get_depth(), node.text)
+        end
+
+        return '-' .. math.random()
+      end,
+    }
+    for _, value in pairs(result) do
+      local node = NuiTree.Node { text = '[' .. symbolKind[value.kind] .. '] ' .. value.name .. value.range.start.line }
+      tree:add_node(node)
+      if value.children ~= nil then
+        for _, value1 in pairs(value.children) do
+          tree:add_node(NuiTree.Node { text = '[' .. symbolKind[value1.kind] .. '] ' .. value1.name }, node:get_id())
+        end
+      end
+      -- vim.api.nvim_buf_set_lines(split.bufnr, 0, 0, false, lines(node:get_id()))
+    end
+    tree:render()
+    split:map('n', '<CR>', function()
+      local node, _ = tree:get_node()
+      if node == nil then
+        return
+      end
+      if not node:has_children() then
+        return
+      end
+      if node:is_expanded() then
+        node:collapse()
+      else
+        node:expand()
+      end
+      tree:render()
+    end)
+  end)
+end, 'Temp')
