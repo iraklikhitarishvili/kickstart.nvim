@@ -898,102 +898,102 @@ function _G.my_fold_text()
   sub = string.format('  %d lines: %s', vim.v.foldend - vim.v.foldstart + 1, sub)
   return vim.v.folddashes .. sub
 end
-------------Experiment with symbols--------------------
-local Split = require 'nui.split'
-local event = require('nui.utils.autocmd').event
-
-local split = Split {
-  relative = 'editor',
-  position = 'left',
-  size = '60%',
-}
-
--- unmount component when cursor leaves buffer
-split:on(event.BufLeave, function()
-  -- split:unmount()
-end)
-local symbolKind = {
-  [1] = 'File',
-  [2] = 'Module',
-  [3] = 'Namespace',
-  [4] = 'Package',
-  [5] = 'Class',
-  [6] = 'Method',
-  [7] = 'Property',
-  [8] = 'Field',
-  [9] = 'Constructor',
-  [10] = 'Enum',
-  [11] = 'Interface',
-  [12] = 'Function',
-  [13] = 'Variable',
-  [14] = 'Constant',
-  [15] = 'String',
-  [16] = 'Number',
-  [17] = 'Boolean',
-  [18] = 'Array',
-  [19] = 'Object',
-  [20] = 'Key',
-  [21] = 'Null',
-  [22] = 'EnumMember',
-  [23] = 'Struct',
-  [24] = 'Event',
-  [25] = 'Operator',
-  [26] = 'TypeParameter',
-}
-local map = function(keys, func, desc)
-  vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
-end
-local function lines(str)
-  local result = {}
-  for line in str:gmatch '[^\n]+' do
-    table.insert(result, line)
-  end
-  return result
-end
-map('ttt', function()
-  local params = vim.lsp.util.make_position_params()
-  vim.lsp.buf_request(0, 'textDocument/documentSymbol', params, function(err, result, _, _)
-    local NuiTree = require 'nui.tree'
-    split:mount()
-    local tree = NuiTree {
-      bufnr = split.bufnr,
-      get_node_id = function(node)
-        if node.id then
-          return '-' .. node.id
-        end
-
-        if node.text then
-          return string.format('%s-%s-%s', node:get_parent_id() or '', node:get_depth(), node.text)
-        end
-
-        return '-' .. math.random()
-      end,
-    }
-    for _, value in pairs(result) do
-      local node = NuiTree.Node { text = '[' .. symbolKind[value.kind] .. '] ' .. value.name .. value.range.start.line }
-      tree:add_node(node)
-      if value.children ~= nil then
-        for _, value1 in pairs(value.children) do
-          tree:add_node(NuiTree.Node { text = '[' .. symbolKind[value1.kind] .. '] ' .. value1.name }, node:get_id())
-        end
-      end
-      -- vim.api.nvim_buf_set_lines(split.bufnr, 0, 0, false, lines(node:get_id()))
-    end
-    tree:render()
-    split:map('n', '<CR>', function()
-      local node, _ = tree:get_node()
-      if node == nil then
-        return
-      end
-      if not node:has_children() then
-        return
-      end
-      if node:is_expanded() then
-        node:collapse()
-      else
-        node:expand()
-      end
-      tree:render()
-    end)
-  end)
-end, 'Temp')
+-- ------------Experiment with symbols--------------------
+-- local Split = require 'nui.split'
+-- local event = require('nui.utils.autocmd').event
+--
+-- local split = Split {
+--   relative = 'editor',
+--   position = 'left',
+--   size = '60%',
+-- }
+--
+-- -- unmount component when cursor leaves buffer
+-- split:on(event.BufLeave, function()
+--   -- split:unmount()
+-- end)
+-- local symbolKind = {
+--   [1] = 'File',
+--   [2] = 'Module',
+--   [3] = 'Namespace',
+--   [4] = 'Package',
+--   [5] = 'Class',
+--   [6] = 'Method',
+--   [7] = 'Property',
+--   [8] = 'Field',
+--   [9] = 'Constructor',
+--   [10] = 'Enum',
+--   [11] = 'Interface',
+--   [12] = 'Function',
+--   [13] = 'Variable',
+--   [14] = 'Constant',
+--   [15] = 'String',
+--   [16] = 'Number',
+--   [17] = 'Boolean',
+--   [18] = 'Array',
+--   [19] = 'Object',
+--   [20] = 'Key',
+--   [21] = 'Null',
+--   [22] = 'EnumMember',
+--   [23] = 'Struct',
+--   [24] = 'Event',
+--   [25] = 'Operator',
+--   [26] = 'TypeParameter',
+-- }
+-- local map = function(keys, func, desc)
+--   vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
+-- end
+-- local function lines(str)
+--   local result = {}
+--   for line in str:gmatch '[^\n]+' do
+--     table.insert(result, line)
+--   end
+--   return result
+-- end
+-- map('ttt', function()
+--   local params = vim.lsp.util.make_position_params()
+--   vim.lsp.buf_request(0, 'textDocument/documentSymbol', params, function(err, result, _, _)
+--     local NuiTree = require 'nui.tree'
+--     split:mount()
+--     local tree = NuiTree {
+--       bufnr = split.bufnr,
+--       get_node_id = function(node)
+--         if node.id then
+--           return '-' .. node.id
+--         end
+--
+--         if node.text then
+--           return string.format('%s-%s-%s', node:get_parent_id() or '', node:get_depth(), node.text)
+--         end
+--
+--         return '-' .. math.random()
+--       end,
+--     }
+--     for _, value in pairs(result) do
+--       local node = NuiTree.Node { text = '[' .. symbolKind[value.kind] .. '] ' .. value.name .. value.range.start.line }
+--       tree:add_node(node)
+--       if value.children ~= nil then
+--         for _, value1 in pairs(value.children) do
+--           tree:add_node(NuiTree.Node { text = '[' .. symbolKind[value1.kind] .. '] ' .. value1.name }, node:get_id())
+--         end
+--       end
+--       -- vim.api.nvim_buf_set_lines(split.bufnr, 0, 0, false, lines(node:get_id()))
+--     end
+--     tree:render()
+--     split:map('n', '<CR>', function()
+--       local node, _ = tree:get_node()
+--       if node == nil then
+--         return
+--       end
+--       if not node:has_children() then
+--         return
+--       end
+--       if node:is_expanded() then
+--         node:collapse()
+--       else
+--         node:expand()
+--       end
+--       tree:render()
+--     end)
+--   end)
+-- end, 'Temp')
