@@ -248,24 +248,55 @@ require('lazy').setup({
   { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
-    config = function() -- This is the function that runs, AFTER loading
-      require('which-key').setup()
+    opts = {
+      icons = {
+        -- set icon mappings to true if you have a Nerd Font
+        mappings = vim.g.have_nerd_font,
+        -- If you are using a Nerd Font: set icons.keys to an empty table which will use the
+        -- default whick-key.nvim defined Nerd Font icons, otherwise define a string table
+        keys = vim.g.have_nerd_font and {} or {
+          Up = '<Up> ',
+          Down = '<Down> ',
+          Left = '<Left> ',
+          Right = '<Right> ',
+          C = '<C-…> ',
+          M = '<M-…> ',
+          D = '<D-…> ',
+          S = '<S-…> ',
+          CR = '<CR> ',
+          Esc = '<Esc> ',
+          ScrollWheelDown = '<ScrollWheelDown> ',
+          ScrollWheelUp = '<ScrollWheelUp> ',
+          NL = '<NL> ',
+          BS = '<BS> ',
+          Space = '<Space> ',
+          Tab = '<Tab> ',
+          F1 = '<F1>',
+          F2 = '<F2>',
+          F3 = '<F3>',
+          F4 = '<F4>',
+          F5 = '<F5>',
+          F6 = '<F6>',
+          F7 = '<F7>',
+          F8 = '<F8>',
+          F9 = '<F9>',
+          F10 = '<F10>',
+          F11 = '<F11>',
+          F12 = '<F12>',
+        },
+      },
 
       -- Document existing key chains
-      require('which-key').register {
-        ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-        ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-        ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
-        ['<leader>t'] = { name = '[T]oggle', _ = 'which_key_ignore' },
-        ['<leader>h'] = { name = 'Git [H]unk', _ = 'which_key_ignore' },
-      }
-      -- visual mode
-      require('which-key').register({
-        ['<leader>h'] = { 'Git [H]unk' },
-      }, { mode = 'v' })
-    end,
+      spec = {
+        { '<leader>c', group = '[C]ode', mode = { 'n', 'x' } },
+        { '<leader>d', group = '[D]ocument' },
+        { '<leader>r', group = '[R]ename' },
+        { '<leader>s', group = '[S]earch' },
+        { '<leader>w', group = '[W]orkspace' },
+        { '<leader>t', group = '[T]oggle' },
+        { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+      },
+    },
   },
 
   -- NOTE: Plugins can specify dependencies.
@@ -354,7 +385,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
-      vim.keymap.set('n', '<leader>td', '<cmd>TodoTelescope<CR>', { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader>td', '<cmd>TodoTelescope<CR>', { desc = '[T]odo' })
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -523,6 +554,9 @@ require('lazy').setup({
             my_globals.diagnostics.virtual_text = not my_globals.diagnostics.virtual_text
             vim.g.my_globals = my_globals
           end, '[T]oggle [D]iagnostics Text')
+          map('tih', function()
+            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = 0 }, { bufnr = 0 })
+          end, '[T]oggle [I]nlay [H]hints')
         end,
       })
 
@@ -552,6 +586,7 @@ require('lazy').setup({
               check = {
                 command = 'clippy',
               },
+              hint = { enable = true },
             },
           },
         },
@@ -561,11 +596,11 @@ require('lazy').setup({
         --    https://github.com/pmizio/typescript-tools.nvim
         --
         -- But for many setups, the LSP (`tsserver`) will work just fine
-        tsserver = {},
+        ts_ls = {},
+        tsp_server = {},
         html = { filetypes = { 'html', 'gohtml' } },
         cssmodules_ls = {},
         --
-
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -834,10 +869,6 @@ require('lazy').setup({
         additional_vim_regex_highlighting = { 'ruby' },
       },
       indent = { enable = true, disable = { 'ruby' } },
-      rainbow = {
-        enable = true,
-        max_file_lines = nil,
-      },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -900,9 +931,10 @@ require('lazy').setup({
   },
 })
 vim.o.termguicolors = true
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
 
+-- spell checking
+vim.opt.spell = true
+vim.opt.spelllang = { 'en_us' }
 -- globals for custom functions
 vim.g.my_globals = {
   diagnostics = {
@@ -925,102 +957,3 @@ function _G.my_fold_text()
   sub = string.format('  %d lines: %s', vim.v.foldend - vim.v.foldstart + 1, sub)
   return vim.v.folddashes .. sub
 end
--- ------------Experiment with symbols--------------------
--- local Split = require 'nui.split'
--- local event = require('nui.utils.autocmd').event
---
--- local split = Split {
---   relative = 'editor',
---   position = 'left',
---   size = '60%',
--- }
---
--- -- unmount component when cursor leaves buffer
--- split:on(event.BufLeave, function()
---   -- split:unmount()
--- end)
--- local symbolKind = {
---   [1] = 'File',
---   [2] = 'Module',
---   [3] = 'Namespace',
---   [4] = 'Package',
---   [5] = 'Class',
---   [6] = 'Method',
---   [7] = 'Property',
---   [8] = 'Field',
---   [9] = 'Constructor',
---   [10] = 'Enum',
---   [11] = 'Interface',
---   [12] = 'Function',
---   [13] = 'Variable',
---   [14] = 'Constant',
---   [15] = 'String',
---   [16] = 'Number',
---   [17] = 'Boolean',
---   [18] = 'Array',
---   [19] = 'Object',
---   [20] = 'Key',
---   [21] = 'Null',
---   [22] = 'EnumMember',
---   [23] = 'Struct',
---   [24] = 'Event',
---   [25] = 'Operator',
---   [26] = 'TypeParameter',
--- }
--- local map = function(keys, func, desc)
---   vim.keymap.set('n', keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
--- end
--- local function lines(str)
---   local result = {}
---   for line in str:gmatch '[^\n]+' do
---     table.insert(result, line)
---   end
---   return result
--- end
--- map('ttt', function()
---   local params = vim.lsp.util.make_position_params()
---   vim.lsp.buf_request(0, 'textDocument/documentSymbol', params, function(err, result, _, _)
---     local NuiTree = require 'nui.tree'
---     split:mount()
---     local tree = NuiTree {
---       bufnr = split.bufnr,
---       get_node_id = function(node)
---         if node.id then
---           return '-' .. node.id
---         end
---
---         if node.text then
---           return string.format('%s-%s-%s', node:get_parent_id() or '', node:get_depth(), node.text)
---         end
---
---         return '-' .. math.random()
---       end,
---     }
---     for _, value in pairs(result) do
---       local node = NuiTree.Node { text = '[' .. symbolKind[value.kind] .. '] ' .. value.name .. value.range.start.line }
---       tree:add_node(node)
---       if value.children ~= nil then
---         for _, value1 in pairs(value.children) do
---           tree:add_node(NuiTree.Node { text = '[' .. symbolKind[value1.kind] .. '] ' .. value1.name }, node:get_id())
---         end
---       end
---       -- vim.api.nvim_buf_set_lines(split.bufnr, 0, 0, false, lines(node:get_id()))
---     end
---     tree:render()
---     split:map('n', '<CR>', function()
---       local node, _ = tree:get_node()
---       if node == nil then
---         return
---       end
---       if not node:has_children() then
---         return
---       end
---       if node:is_expanded() then
---         node:collapse()
---       else
---         node:expand()
---       end
---       tree:render()
---     end)
---   end)
--- end, 'Temp')
