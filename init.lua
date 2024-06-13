@@ -523,6 +523,9 @@ require('lazy').setup({
             my_globals.diagnostics.virtual_text = not my_globals.diagnostics.virtual_text
             vim.g.my_globals = my_globals
           end, '[T]oggle [D]iagnostics Text')
+          map('tih', function()
+            vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = 0 }, { bufnr = 0 })
+          end, '[T]oggle [I]nlay [H]hints')
         end,
       })
 
@@ -552,6 +555,7 @@ require('lazy').setup({
               check = {
                 command = 'clippy',
               },
+              hint = { enable = true },
             },
           },
         },
@@ -925,6 +929,7 @@ function _G.my_fold_text()
   sub = string.format('  %d lines: %s', vim.v.foldend - vim.v.foldstart + 1, sub)
   return vim.v.folddashes .. sub
 end
+
 -- ------------Experiment with symbols--------------------
 -- local Split = require 'nui.split'
 -- local event = require('nui.utils.autocmd').event
