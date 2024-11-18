@@ -59,6 +59,7 @@ P.S. You can delete this when you're done too. It's your config now :)
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are required (otherwise wrong leader will be used)
+local custom_config = require './init_custom'
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
@@ -558,17 +559,18 @@ require('lazy').setup({
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
           end
+          lsp_attach(map)
         end,
       })
 
       -- Change diagnostic symbols in the sign column (gutter)
-      -- if vim.g.have_nerd_font then
-      --   local signs = { Error = '', Warn = '', Hint = '', Info = '' }
-      --   for type, icon in pairs(signs) do
-      --     local hl = 'DiagnosticSign' .. type
-      --     vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
-      --   end
-      -- end
+      if vim.g.have_nerd_font then
+        local signs = { Error = '', Warn = '', Hint = '', Info = '' }
+        for type, icon in pairs(signs) do
+          local hl = 'DiagnosticSign' .. type
+          vim.fn.sign_define(hl, { text = icon, texthl = hl, numhl = hl })
+        end
+      end
 
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
@@ -623,6 +625,7 @@ require('lazy').setup({
           },
         },
       }
+      add_lsp(servers)
 
       -- Ensure the servers and tools above are installed
       --  To check the current status of installed tools and/or manually install
@@ -919,7 +922,7 @@ require('lazy').setup({
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --    For additional information, see `:help lazy.nvim-lazy.nvim-structuring-your-plugins`
-  -- { import = 'custom.plugins' },
+  { import = 'custom.plugins' },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the
@@ -942,29 +945,3 @@ require('lazy').setup({
   },
 })
 vim.o.termguicolors = true
-
--- spell checking
-vim.opt.spell = true
-vim.opt.spelllang = { 'en_us' }
--- globals for custom functions
-vim.g.my_globals = {
-  diagnostics = {
-    virtual_text = false,
-    signs = true,
-    underline = true,
-    update_in_insert = false,
-  },
-}
--- folding
-vim.opt.foldmethod = 'expr'
-vim.opt.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-vim.opt.foldtext = 'v:lua.vim.treesitter.foldtext()'
-vim.opt.foldenable = false
-vim.opt.foldtext = 'v:lua.my_fold_text()'
-function _G.my_fold_text()
-  local line = vim.fn.getline(vim.v.foldstart)
-  local sub = vim.fn.trim(line)
-  sub = vim.fn.substitute(sub, '/*|*/|{{{d=', '', 'g')
-  sub = string.format('  %d lines: %s', vim.v.foldend - vim.v.foldstart + 1, sub)
-  return vim.v.folddashes .. sub
-end
